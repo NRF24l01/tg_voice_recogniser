@@ -1,34 +1,25 @@
-from modules import Client, Logger
+from modules import Client, Logger, download_and_convert_to_wav
 from asyncio import run
 from config import HOST, PORT, API_KEY
 
-class Parrot(Client):
+class Recognizer(Client):
     async def process_message(self, message_type: int, payload: dict, config: dict):
+        print(message_type, payload, config)
         if message_type == 1:
-            if config.get("reply_me", "true") == "true" and payload["my_message"]:
-                async with self.to_send_lock:
-                    task = {
-                        "type": 1,
-                        "payload": {
-                            "message": payload["message"],
-                            "to": payload["from"]
-                        }
-                    }
-                    await self.to_send.put(task)
-            if config.get("reply_others", "false") == "true" and not payload["my_message"]:
-                async with self.to_send_lock:
-                    task = {
-                        "type": 1,
-                        "payload": {
-                            "message": payload["message"],
-                            "to": payload["from"]
-                        }
-                    }
-                    await self.to_send.put(task)
+            message = payload["message"].strip()
+            if message.startswith("/to_text"):
+                model = config.get("model", "openai/whisper-large-v3-turbo")
+                file_link = payload["reply_to_media_id"]
+                if not file_link:
+                    return
+                
+                wav_path = download_and_convert_to_wav(file_link)
+                print(wav_path)
+                
 
 async def main():
     logger = Logger()
-    client = Parrot(logger)
+    client = Recognizer(logger)
     await client.init(HOST, PORT, API_KEY)
 
     await client.polling()
