@@ -7,11 +7,11 @@ from time import time
 
 # Настройка устройства
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
-device = "cpu"
+#device = "cpu"
 torch_dtype = torch.float16 if torch.cuda.is_available() else torch.float32
 
 # Модель
-model_id = "openai/whisper-small"
+model_id = "openai/whisper-large-v3-turbo"
 model = AutoModelForSpeechSeq2Seq.from_pretrained(
     model_id, torch_dtype=torch_dtype, low_cpu_mem_usage=True, use_safetensors=True
 ).to(device)
@@ -27,7 +27,7 @@ pipe = pipeline(
 )
 
 # Путь к видео
-video_path = "round.mp4"
+video_path = "round4.mp4"
 
 # Извлечение аудио через ffmpeg
 with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp_audio:
