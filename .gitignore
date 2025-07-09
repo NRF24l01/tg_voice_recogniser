@@ -1,1 +1,10 @@
+*pb2*
+*.env
+*.pyc
+*session*
+*venv*
+*migrations*
+*pycache*
+*db*
+pyproject.toml
 *.mp4
