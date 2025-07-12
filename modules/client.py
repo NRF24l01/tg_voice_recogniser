@@ -7,20 +7,16 @@ class Client(AsyncSocketController):
         self.logger = logger
         self.to_send = Queue()
         self.to_send_lock = Lock()
-        self.reader = None
-        self.writer = None
 
     async def init(self, host: str, port: int, key: str):
         self.logger.info(f"Trying to connect to {host}:{port}")
         self.reader, self.writer = await open_connection(host, port)
         self.logger.info(f"Success!")
-
         await self.send_json({"key": key})
         answer = await self.read_json()
         if not answer["connected"]:
             self.logger.critical("Key is invalid.")
             raise Exception("Key is invalid.")
-
         self.logger.info(f"Registered as {answer['name']}")
     
     async def polling(self):
