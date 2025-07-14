@@ -40,26 +40,30 @@ class Client(AsyncSocketController):
     async def send_message(self, chat_id: int, text: str, reply_to: int | None = None):
         payload = {
             "type": 1,
+            "require_answer": True,
             "payload": {
                 "to": chat_id,
                 "message": text,
-                "require_answer": True,
                 "reply_to": reply_to,
             }
         }
         await self._send_command(payload)
+        self.logger.debug("Started waiting for message id")
         answer = await self.wait_for_answer()
+        self.logger.debug("Got answer with msg id")
         msg = Message(client=self, chat_id=answer["chat_id"], msg_id=answer["message"]["id"], message=answer["message"])
         return msg
     
     async def _send_command(self, cmd: Dict[str, Any]):
+        self.logger.debug("Sending json")
         async with self.to_send_lock:
-            await self.to_send.put(cmd)
+            await self.send_json(cmd)
     
     async def wait_for_answer(self):
         answer = None
         while not answer:
             if await self.data_available():
+                self.logger.debug("Some bytes available")
                 try:
                     data = await self.read_json()
                     self.logger.debug("Received message from server:", data)
