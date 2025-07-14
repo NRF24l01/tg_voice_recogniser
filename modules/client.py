@@ -12,11 +12,14 @@ class Message:
     
     async def edit(self, text):
         payload = {
-            "chat_id": self.chat_id,
-            "message_id": self.message_id,
-            "text": text
+            "type": 2,
+            "payload": {
+                "chat_id": self.chat_id,
+                "message_id": self.message_id,
+                "text": text
+            }
         }
-        self._client.send_command(payload)
+        await self._client._send_command(payload)
 
 
 class Client(AsyncSocketController):
