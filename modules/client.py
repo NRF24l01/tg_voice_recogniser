@@ -1,5 +1,23 @@
 from . import AsyncSocketController, Logger
 from asyncio import open_connection, sleep, Lock, Queue
+from typing import Any, Dict
+
+
+class Message:
+    def __init__(self, client: "Client", chat_id: int, msg_id: int, message: Dict[str, Any]):
+        self._client = client
+        self.message_dict = message
+        self.message_id = msg_id
+        self.chat_id = chat_id
+    
+    async def edit(self, text):
+        payload = {
+            "chat_id": self.chat_id,
+            "message_id": self.message_id,
+            "text": text
+        }
+        self._client.send_command(payload)
+
 
 class Client(AsyncSocketController):
     def __init__(self, logger: Logger):
@@ -18,6 +36,41 @@ class Client(AsyncSocketController):
             self.logger.critical("Key is invalid.")
             raise Exception("Key is invalid.")
         self.logger.info(f"Registered as {answer['name']}")
+    
+    async def send_message(self, chat_id: int, text: str, reply_to: int | None = None):
+        payload = {
+            "type": 1,
+            "payload": {
+                "to": chat_id,
+                "message": text,
+                "require_answer": True,
+                "reply_to": reply_to,
+            }
+        }
+        await self._send_command(payload)
+        answer = await self.wait_for_answer()
+        msg = Message(client=self, chat_id=answer["chat_id"], msg_id=answer["message"]["id"], message=answer["message"])
+        return msg
+    
+    async def _send_command(self, cmd: Dict[str, Any]):
+        async with self.to_send_lock:
+            await self.to_send.put(cmd)
+    
+    async def wait_for_answer(self):
+        answer = None
+        while not answer:
+            if await self.data_available():
+                try:
+                    data = await self.read_json()
+                    self.logger.debug("Received message from server:", data)
+                    if data.get("type", None) == 0:
+                        answer = data
+                        return data
+                    else:
+                        await self.process_message(message_type=data["type"], payload=data["payload"], config=data["config"])
+                except Exception as e:
+                    raise e
+                    self.logger.warning(f"Error reading message from server: {e}")
     
     async def polling(self):
         try:
