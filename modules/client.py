@@ -39,6 +39,7 @@ class Client(AsyncSocketController):
                 await sleep(0.05)
 
         except Exception as e:
+            raise e
             self.logger.info(f"Host disconnected: {e}")
             self.writer.close()
             await self.writer.wait_closed()
