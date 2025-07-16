@@ -5,3 +5,16 @@
 - Распознование за счёт библиотек transformers+torch
 - ТОРЧ НАДО РУКАМИ СТАВИТЬ
 - и ffmpeg нужен
+
+## УСТАНОВКА
+- Установите зависимости
+```
+pip install -r requirements.txt
+```
+
+- Поставьте торчу
+```
+pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+```
+
+- Радуйтесь!
