@@ -17,4 +17,4 @@ pip install -r requirements.txt
 pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
 ```
 
-- Радуйтесь!
+- Радуйтесь, отвечая на кружочки или голосовые через /to_text
